@@ -4,7 +4,11 @@ const dotenv = require('dotenv');
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const globalErrorHandler = require('./controllers/errorController');
+const AppError = require('./utils/appError')
 
+
+const { version } = require('mongoose');
 dotenv.config({ path: './config.env' });
 
 const app = express();
@@ -42,6 +46,27 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+
+app.all('*', (req, res, next) => {
+    // version 1
+    // res.status(404).json({
+    //     status: "error",
+    //     message: `Can find the requested URL (${req.originalUrl})`
+    // })
+
+    // version2
+    // const err = new Error(`Can find the requested URL (${req.originalUrl})`);
+    // err.status = "fail";
+    // err.statusCode = 404;
+    // next(err);
+
+    // final version
+    next(new AppError(`Can't find the requested URL (${req.originalUrl})`, 404))
+});
+
+
+app.use(globalErrorHandler);
 
 
 module.exports = app;
