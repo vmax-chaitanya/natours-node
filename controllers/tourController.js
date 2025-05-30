@@ -9,6 +9,7 @@ const catchAsync = require('./../utils/catchAsync');
 
 const { error } = require('console');
 const { match } = require('assert');
+const AppError = require('../utils/appError');
 // const tours = JSON.parse(
 //     fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
 // );
@@ -154,3 +155,42 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+
+exports.getToursByLocation = catchAsync(async (req, res, next) => {
+  const { distance, lat, lng, unit } = req.params;
+
+  if (!lat || !lng) {
+    return next(new AppError('Please provide latitude and longitude in the format lat,lng.', 400));
+  }
+
+  const radius = (unit === 'mi') ? distance / 3963.2 : distance / 6378.1;
+
+  const latNum = parseFloat(lat);
+  const lngNum = parseFloat(lng);
+
+  if (isNaN(latNum) || isNaN(lngNum)) {
+    return next(new AppError('Latitude and Longitude must be valid numbers.', 400));
+  }
+
+  const tours = await Tour.find({
+    startLocation: {
+      $geoWithin: {
+        $centerSphere: [[lngNum, latNum], radius]
+      }
+    }
+  });
+
+  if (!tours || tours.length === 0) {
+    return next(new AppError('No tours found in your location.', 400));
+  }
+
+  res.status(200).json({
+    status: "success",
+    results: tours.length,
+    data: {
+      tours
+    }
+  });
+});
+

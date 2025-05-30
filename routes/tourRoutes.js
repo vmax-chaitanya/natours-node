@@ -9,12 +9,17 @@ const {
   getTour,
   updateTour,
   deleteTour,
+  getToursByLocation,
 } = require('./../controllers/tourController');
 const { protect, restrictTo } = require('./../controllers/authController');
 const { createReview } = require('./../controllers/reviewController');
 const reviewRouter = require('./../routes/reviewRoutes');
 
 const routes = express.Router();
+
+// routes.route('toursWithIn/:distance/latLng/:latLng/unit/:unit').get(getToursByLocation);
+routes.route('/toursWithIn/:distance/lat/:lat/lng/:lng/unit/:unit').get(getToursByLocation);
+
 
 // routes.use('/:tourId/reviews', reviewRouter);
 routes.use('/:tourId/review', reviewRouter);
